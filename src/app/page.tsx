@@ -215,6 +215,19 @@ export default function HomePage() {
     setStatus(`${plan} package selected. Create an account to continue.`);
   }
 
+  function openPricing() {
+    setView("home");
+    setStatus("Pricing packages opened.");
+    window.setTimeout(() => {
+      document.getElementById("packages")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
+  }
+
+  function openLogin() {
+    setView("login");
+    setStatus(isTechnicianAuthenticated ? "You are already signed in. Log in with a different technician account if needed." : "Technician login opened.");
+  }
+
   function submitAuth(nextView: View) {
     if (!email.trim()) {
       setStatus("Enter your email address to continue.");
@@ -275,9 +288,9 @@ export default function HomePage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={() => setView("home")} className="rounded-xl px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-100">Home</button>
-            <a href="#packages" className="rounded-xl px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-100">Pricing</a>
+            <button onClick={openPricing} className="rounded-xl px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-100">Pricing</button>
             <button onClick={() => setView(isTechnicianAuthenticated ? "dashboard" : "login")} className="rounded-xl px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-100">Console</button>
-            <button onClick={() => setView("login")} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-900 hover:bg-slate-50">Login</button>
+            <button onClick={openLogin} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-900 hover:bg-slate-50">{isTechnicianAuthenticated ? "Switch account" : "Login"}</button>
             <button onClick={() => openSignup()} className="rounded-xl bg-assist px-4 py-2 text-sm font-black text-white shadow-glow hover:brightness-110">Sign up free</button>
           </div>
         </header>
@@ -332,6 +345,10 @@ export default function HomePage() {
                 {["4 device free limit", "0 active sessions", "1 operator", "Free plan"].map((item) => (
                   <div key={item} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 font-black text-slate-950">{item}</div>
                 ))}
+              </div>
+              <div className="rounded-[2rem] border border-warning/30 bg-warning/10 p-5">
+                <p className="text-sm font-black uppercase tracking-[0.2em] text-warning">Backend data status</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">This deployed demo currently uses client-side state and sample device records. Real technician accounts, users, devices, install tokens, reports, billing, and audit logs still need a production backend database before customer data can be stored securely.</p>
               </div>
               <div className="rounded-[2rem] border border-assist/20 bg-assist/5 p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
