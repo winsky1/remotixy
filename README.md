@@ -1,6 +1,6 @@
 ﻿# Remotixy
 
-A standalone Next.js prototype for consent-based browser remote assistance.
+Remotixy is a remote support platform for technicians to manage customer devices, generate host support links, and run consent-based browser remote assistance sessions.
 
 ## What it does
 
