@@ -4,7 +4,7 @@ import { ChangeEvent, MouseEvent, useEffect, useMemo, useRef, useState } from "r
 import { AlertTriangle, CheckCircle2, Clipboard, Eye, Files, Hand, KeyRound, LifeBuoy, Lock, MessageSquare, MonitorSmartphone, MonitorUp, MousePointer2, PhoneOff, Printer, RadioTower, ShieldCheck, Sparkles, Users } from "lucide-react";
 
 type Mode = "idle" | "host" | "guest";
-type View = "home" | "login" | "signup" | "dashboard";
+type View = "home" | "login" | "signup" | "dashboard" | "host";
 type PointerEvent = { x: number; y: number; label: string };
 
 const safetyItems = [
@@ -93,6 +93,7 @@ function createSessionCode() {
 
 export default function HomePage() {
   const [view, setView] = useState<View>("home");
+  const [isTechnicianAuthenticated, setIsTechnicianAuthenticated] = useState(false);
   const [mode, setMode] = useState<Mode>("idle");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
@@ -131,6 +132,7 @@ export default function HomePage() {
     const technician = params.get("technician");
     const install = params.get("install");
     if (technician && install === "support-client") {
+      setView("host");
       setMode("host");
       setStatus(`Support client link opened for ${technician}. The host computer can start a visible support session and appear in the technician dashboard.`);
     }
@@ -218,6 +220,7 @@ export default function HomePage() {
       setStatus("Enter your email address to continue.");
       return;
     }
+    setIsTechnicianAuthenticated(true);
     setView(nextView);
     setStatus("Signed in to the Remotixy web console.");
   }
@@ -273,7 +276,7 @@ export default function HomePage() {
           <div className="flex flex-wrap items-center gap-2">
             <button onClick={() => setView("home")} className="rounded-xl px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-100">Home</button>
             <a href="#packages" className="rounded-xl px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-100">Pricing</a>
-            <button onClick={() => setView("dashboard")} className="rounded-xl px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-100">Console</button>
+            <button onClick={() => setView(isTechnicianAuthenticated ? "dashboard" : "login")} className="rounded-xl px-4 py-2 text-sm font-black text-slate-700 hover:bg-slate-100">Console</button>
             <button onClick={() => setView("login")} className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-900 hover:bg-slate-50">Login</button>
             <button onClick={() => openSignup()} className="rounded-xl bg-assist px-4 py-2 text-sm font-black text-white shadow-glow hover:brightness-110">Sign up free</button>
           </div>
@@ -334,10 +337,10 @@ export default function HomePage() {
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <p className="text-sm font-black uppercase tracking-[0.2em] text-assist">Host computer link</p>
-                    <h3 className="mt-2 text-2xl font-black text-slate-950">Send this to the customer computer</h3>
-                    <p className="mt-2 text-sm leading-6 text-slate-600">The host opens this link, downloads or starts the support client, grants visible permission, and then the computer appears in this technician dashboard.</p>
+                    <h3 className="mt-2 text-2xl font-black text-slate-950">Copy this link and open it on the host computer</h3>
+                    <p className="mt-2 text-sm leading-6 text-slate-600">Technicians copy this backend-generated install link, paste it into the customer or host computer, and start the visible support client. Once opened, the device appears in the technician console for devices, reports, and support actions.</p>
                   </div>
-                  <button onClick={copySupportClientLink} className="rounded-2xl bg-assist px-5 py-3 font-black text-white shadow-glow">Copy host link</button>
+                  <button onClick={copySupportClientLink} className="rounded-2xl bg-assist px-5 py-3 font-black text-white shadow-glow">Copy install link</button>
                 </div>
                 <div className="mt-4 break-all rounded-2xl bg-white p-4 font-mono text-sm text-slate-700">{supportClientLink}</div>
               </div>
@@ -428,6 +431,99 @@ export default function HomePage() {
           </section>
         )}
 
+        {view === "host" && (
+          <>
+            <div className="rounded-[2.5rem] border border-assist/20 bg-white p-8 shadow-card">
+              <p className="text-sm font-black uppercase tracking-[0.2em] text-assist">Remotixy host client</p>
+              <h2 className="mt-2 text-4xl font-black tracking-tight text-slate-950">Start support from this computer.</h2>
+              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">This page is opened from a technician-generated link. The technician account owns the dashboard, reports, billing, and device list. This host computer only starts a visible support client with consent.</p>
+            </div>
+
+            <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+              <section id="share" className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-card">
+                <div className="flex items-center gap-3">
+                  <MonitorUp className="h-7 w-7 text-assist" />
+                  <div>
+                    <h2 className="text-2xl font-black">Host computer support client</h2>
+                    <p className="text-sm text-slate-400">The customer opens this from the technician-generated install link.</p>
+                  </div>
+                </div>
+
+                <div className="mt-6 grid gap-3">
+                  {safetyItems.map((item) => (
+                    <label key={item} className="flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-assist" />
+                      <span>{item}</span>
+                    </label>
+                  ))}
+                </div>
+
+                <label className="mt-5 flex items-center gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm font-semibold text-slate-800">
+                  <input checked={consentAccepted} onChange={(event) => setConsentAccepted(event.target.checked)} type="checkbox" className="h-5 w-5 accent-[#F8C14A]" />
+                  I understand and consent to sharing my screen for this session at any time.
+                </label>
+
+                <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                  <button onClick={startHosting} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-assist px-5 py-3 font-black text-white transition hover:brightness-110">
+                    <MonitorUp className="h-5 w-5" />
+                    Start visible support client
+                  </button>
+                  <button onClick={endSession} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-danger/40 bg-danger/10 px-5 py-3 font-black text-danger transition hover:bg-danger/20">
+                    <PhoneOff className="h-5 w-5" />
+                    End session
+                  </button>
+                </div>
+
+                {sessionCode && (
+                  <div className="mt-6 rounded-3xl border border-assist/30 bg-assist/10 p-5">
+                    <p className="text-sm font-bold uppercase tracking-[0.2em] text-assist">Session code</p>
+                    <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="font-mono text-3xl font-black tracking-widest">{sessionCode}</p>
+                      <button onClick={copyInvite} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-bold text-slate-900 hover:bg-slate-50">
+                        <Clipboard className="h-5 w-5" />
+                        Copy invite
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              <section className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-card">
+                <div onClick={placePointer} className="relative grid min-h-[420px] cursor-crosshair place-items-center overflow-hidden rounded-[1.5rem] border border-white/10 bg-black">
+                  <video ref={videoRef} autoPlay playsInline muted className="h-full max-h-[620px] w-full object-contain" />
+                  {!isSharing && (
+                    <div className="grid max-w-md place-items-center gap-4 text-center">
+                      <div className="grid h-20 w-20 place-items-center rounded-3xl bg-white/10">
+                        <MousePointer2 className="h-10 w-10 text-assist" />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-black text-white">Session preview</h3>
+                        <p className="mt-2 text-slate-400">Host screen preview appears here after browser permission is granted.</p>
+                      </div>
+                    </div>
+                  )}
+                  {isSharing && <div className="absolute left-4 top-4 rounded-2xl bg-danger px-4 py-2 text-sm font-black text-white">Screen sharing visible</div>}
+                </div>
+              </section>
+            </div>
+
+            <aside className="grid gap-4 lg:grid-cols-3">
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-card">
+                <div className="flex items-center gap-3"><Sparkles className="h-6 w-6 text-assist" /><h3 className="text-xl font-black">Status</h3></div>
+                <p className="mt-4 text-sm leading-6 text-slate-600">{status}</p>
+              </div>
+              <div className="rounded-[2rem] border border-warning/30 bg-warning/10 p-5 shadow-card">
+                <div className="flex items-center gap-3"><AlertTriangle className="h-6 w-6 text-warning" /><h3 className="text-xl font-black text-warning">Visible consent</h3></div>
+                <p className="mt-4 text-sm leading-6 text-slate-600">The host starts sharing manually and can stop the session at any time.</p>
+              </div>
+              <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-card">
+                <div className="flex items-center gap-3"><Lock className="h-6 w-6 text-assist" /><h3 className="text-xl font-black">Boundaries</h3></div>
+                <p className="mt-4 text-sm leading-6 text-slate-600">No hidden access, credential collection, stealth mode, or permission bypassing.</p>
+              </div>
+            </aside>
+          </>
+        )}
+
         {view === "home" && <><section className="grid gap-8 rounded-[2.5rem] border border-slate-200 bg-white p-8 shadow-card lg:grid-cols-[1.05fr_0.95fr] lg:p-10">
           <div className="grid content-center gap-6">
             <div className="w-fit rounded-full border border-assist/20 bg-assist/10 px-4 py-2 text-sm font-black uppercase tracking-[0.2em] text-assist">Remotixy technician console</div>
@@ -440,10 +536,10 @@ export default function HomePage() {
                 <MonitorUp className="h-5 w-5" />
                 Technician sign up
               </button>
-              <a href="#share" className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-4 font-black text-slate-900 transition hover:bg-slate-100">
+              <button onClick={() => setView("login")} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-6 py-4 font-black text-slate-900 transition hover:bg-slate-100">
                 <Users className="h-5 w-5" />
-                I am on the host computer
-              </a>
+                Technician login
+              </button>
             </div>
           </div>
           <div className="rounded-[2rem] bg-gradient-to-br from-slate-950 to-slate-800 p-5 text-white shadow-card">
@@ -478,83 +574,6 @@ export default function HomePage() {
             </div>
           ))}
         </section>
-
-        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-          <section id="share" className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-card">
-            <div className="flex items-center gap-3">
-              <MonitorUp className="h-7 w-7 text-assist" />
-              <div>
-                <h2 className="text-2xl font-black">Host computer support client</h2>
-                <p className="text-sm text-slate-400">This is what the customer opens from the technician-generated link.</p>
-              </div>
-            </div>
-
-            <div className="mt-6 grid gap-3">
-              {safetyItems.map((item) => (
-                <label key={item} className="flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                  <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-assist" />
-                  <span>{item}</span>
-                </label>
-              ))}
-            </div>
-
-            <label className="mt-5 flex items-center gap-3 rounded-2xl border border-warning/30 bg-warning/10 p-4 text-sm font-semibold text-slate-800">
-              <input checked={consentAccepted} onChange={(event) => setConsentAccepted(event.target.checked)} type="checkbox" className="h-5 w-5 accent-[#F8C14A]" />
-              I understand and consent to sharing my screen for this session at any time.
-            </label>
-
-            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <button onClick={startHosting} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-assist px-5 py-3 font-black text-white transition hover:brightness-110">
-                <MonitorUp className="h-5 w-5" />
-                Start visible support client
-              </button>
-              <button onClick={endSession} className="inline-flex items-center justify-center gap-2 rounded-2xl border border-danger/40 bg-danger/10 px-5 py-3 font-black text-danger transition hover:bg-danger/20">
-                <PhoneOff className="h-5 w-5" />
-                End session
-              </button>
-            </div>
-
-            {sessionCode && (
-              <div className="mt-6 rounded-3xl border border-assist/30 bg-assist/10 p-5">
-                <p className="text-sm font-bold uppercase tracking-[0.2em] text-assist">Session code</p>
-                <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="font-mono text-3xl font-black tracking-widest">{sessionCode}</p>
-                  <button onClick={copyInvite} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 font-bold text-slate-900 hover:bg-slate-50">
-                    <Clipboard className="h-5 w-5" />
-                    Copy invite
-                  </button>
-                </div>
-              </div>
-            )}
-          </section>
-
-          <section id="join" className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-card">
-            <div className="flex items-center gap-3">
-              <Users className="h-7 w-7 text-assistBlue" />
-              <div>
-                <h2 className="text-2xl font-black">Join as helper</h2>
-                <p className="text-sm text-slate-500">Use a code from someone who explicitly requested help.</p>
-              </div>
-            </div>
-
-            <div className="mt-6 rounded-3xl bg-slate-50 p-5">
-              <label className="text-sm font-bold text-slate-600" htmlFor="session-code">Session code</label>
-              <div className="mt-3 flex flex-col gap-3 sm:flex-row">
-                <input id="session-code" value={guestCode} onChange={handleGuestCode} placeholder="ABC-123-XYZ" className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 font-mono text-lg uppercase outline-none ring-assistBlue/40 focus:ring-4" />
-                <button onClick={joinSession} className="inline-flex items-center justify-center gap-2 rounded-2xl bg-assistBlue px-5 py-3 font-black text-white transition hover:brightness-110">
-                  <KeyRound className="h-5 w-5" />
-                  Join
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-5 grid gap-3 text-sm text-slate-600">
-              <div className="flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"><ShieldCheck className="h-5 w-5 shrink-0 text-assist" /> Confirm the host verbally before assisting.</div>
-              <div className="flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"><Eye className="h-5 w-5 shrink-0 text-assist" /> The host remains in control and can stop sharing instantly.</div>
-              <div className="flex gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"><Hand className="h-5 w-5 shrink-0 text-warning" /> Pointer requests are suggestions, not hidden clicks.</div>
-            </div>
-          </section>
-        </div>
 
         <section className="grid gap-5 md:grid-cols-2 lg:grid-cols-4">
           {suiteFeatures.map((feature) => (
@@ -603,48 +622,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-[1fr_360px]">
-          <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-card">
-            <div onClick={placePointer} className="relative grid min-h-[420px] cursor-crosshair place-items-center overflow-hidden rounded-[1.5rem] border border-white/10 bg-black">
-              <video ref={videoRef} autoPlay playsInline muted className="h-full max-h-[620px] w-full object-contain" />
-              {!isSharing && (
-                <div className="grid max-w-md place-items-center gap-4 text-center">
-                  <div className="grid h-20 w-20 place-items-center rounded-3xl bg-white/10">
-                    <MousePointer2 className="h-10 w-10 text-assist" />
-                  </div>
-                  <div>
-                    <h3 className="text-2xl font-black text-white">Session preview</h3>
-                    <p className="mt-2 text-slate-400">Host screen preview appears here after browser permission is granted. Guest clicks create visible pointer requests only.</p>
-                  </div>
-                </div>
-              )}
-              {pointer && (
-                <div className="absolute -translate-x-2 -translate-y-2" style={{ left: `${pointer.x}%`, top: `${pointer.y}%` }}>
-                  <div className="relative">
-                    <MousePointer2 className="h-8 w-8 fill-assist text-background drop-shadow" />
-                    <div className="absolute left-6 top-5 whitespace-nowrap rounded-xl bg-assist px-3 py-2 text-xs font-black text-white shadow-glow">{pointer.label}</div>
-                  </div>
-                </div>
-              )}
-              {isSharing && <div className="absolute left-4 top-4 rounded-2xl bg-danger px-4 py-2 text-sm font-black text-white">Screen sharing visible</div>}
-            </div>
-          </div>
-
-          <aside className="grid content-start gap-4">
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-card">
-              <div className="flex items-center gap-3"><Sparkles className="h-6 w-6 text-assist" /><h3 className="text-xl font-black">Status</h3></div>
-              <p className="mt-4 text-sm leading-6 text-slate-600">{status}</p>
-            </div>
-            <div className="rounded-[2rem] border border-warning/30 bg-warning/10 p-5 shadow-card">
-              <div className="flex items-center gap-3"><AlertTriangle className="h-6 w-6 text-warning" /><h3 className="text-xl font-black text-warning">Production note</h3></div>
-              <p className="mt-4 text-sm leading-6 text-slate-600">To connect two browsers over the internet, add authenticated WebRTC signaling, short-lived session tokens, audit logs, TURN servers, and rate limiting.</p>
-            </div>
-            <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-card">
-              <div className="flex items-center gap-3"><Lock className="h-6 w-6 text-assist" /><h3 className="text-xl font-black">Built-in boundaries</h3></div>
-              <p className="mt-4 text-sm leading-6 text-slate-600">No background service, no credential collection, no stealth mode, and no unattended control.</p>
-            </div>
-          </aside>
-        </section></>}
+        </>}
       </section>
     </main>
   );
