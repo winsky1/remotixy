@@ -14,6 +14,9 @@ build/
 .env
 .env.*
 !.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
 
 # Logs
 logs
@@ -41,3 +44,13 @@ coverage/
 
 # Security
 *.pem
+
+# Python/Django
+__pycache__/
+*.py[cod]
+.venv/
+backend/.venv/
+db.sqlite3
+backend/db.sqlite3
+staticfiles/
+backend/staticfiles/
