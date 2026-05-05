@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: remotixy
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm run start -- -p $PORT
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GOOGLE_AI_API_KEY
+        sync: false
